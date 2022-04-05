@@ -42,7 +42,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
 
-    'djoser'
+    'djoser',
+    'drf_yasg',
+
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +145,17 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+
+# Swagger settings for api docs
+SWAGGER_SETTINGS = {
+    "DEFAULT_INFO": f"{ROOT_URLCONF}.api_info",
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'header': 'header'
+        }
+    },
+}
+
+AUTH_USER_MODEL = 'core.User'
