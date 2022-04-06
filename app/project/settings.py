@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'drf_yasg',
 
     'core',
+    'bonds',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +160,5 @@ SWAGGER_SETTINGS = {
 }
 
 AUTH_USER_MODEL = 'core.User'
+
+DEFAULT_CURRENCY = "MXN"
