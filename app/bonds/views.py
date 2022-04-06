@@ -1,8 +1,10 @@
-from multiprocessing import context
 from django.db.models import Case, When, CharField, Value
 
 from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.response import Response
+
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 from bonds import models
 from bonds.serializers import SellBondSerializer, BondsListSerializer, \
@@ -26,6 +28,12 @@ class SellBondViewset(mixins.CreateModelMixin, viewsets.GenericViewSet):
 class ListBondsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = BondsListSerializer
     permission_classes = (permissions.IsAuthenticated, )
+    currency_param_config = openapi.Parameter(
+            'currency',
+            in_=openapi.IN_QUERY,
+            description='currency',
+            type=openapi.TYPE_STRING
+        )
 
     def get_queryset(self):
         queryset = (
@@ -39,8 +47,13 @@ class ListBondsViewset(mixins.ListModelMixin, viewsets.GenericViewSet):
 
         return queryset
 
+    @swagger_auto_schema(manual_parameters=[currency_param_config])
     def list(self, request):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(
+            self.get_queryset(),
+            many=True,
+            context={"currency": request.GET.get("currency", None)}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
