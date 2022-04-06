@@ -1,9 +1,11 @@
 from django.utils.translation import gettext as _
+from django.conf import settings
 
 from rest_framework import serializers, exceptions
 
 from bonds import models
 from bonds.signals import create_sell_transaction_signal
+from bonds.utils.fetch_latest_exchange_rate import exchange_rate
 
 
 class SellBondSerializer(serializers.ModelSerializer):
@@ -27,18 +29,28 @@ class SellBondSerializer(serializers.ModelSerializer):
 
 class BondsListSerializer(serializers.ModelSerializer):
     status = serializers.CharField(max_length=50, read_only=True)
+    exchange_rate = exchange_rate()
 
     class Meta:
         model = models.Transaction
         fields = "__all__"
 
     def to_representation(self, data):
+        currency = self.context.get("currency", None)
+        currency_symbol = settings.DEFAULT_CURRENCY
         data = super().to_representation(data)
         bond = models.Bond.objects.get(id=data["bond"])
+        selling_price = bond.selling_price
+        if currency:
+            if currency.lower() == 'usd':
+                selling_price = float(selling_price) / float(self.exchange_rate)
+                selling_price = "%.4f" % selling_price
+                currency_symbol = "USD"
+
         return {
             "id": bond.id,
             "name": bond.name,
-            "selling_price": bond.selling_price,
+            "selling_price": f"{selling_price} {currency_symbol}",
             "status": data["status"],
             "number_of_bonds": bond.number_of_bonds
         }
